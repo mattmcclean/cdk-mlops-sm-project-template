@@ -5,10 +5,7 @@ import * as MLOpsProjectTemplate from '../lib/mlops-sc-portfolio-stack';
 test('Empty Stack', () => {
     const app = new cdk.App();
     // WHEN
-    const stack = new MLOpsProjectTemplate.MLOpsServiceCataloguePortfolioStack(app, 'MyTestStack', {
-      constraintRole: '',
-      accessRole: '',
-    });
+    const stack = new MLOpsProjectTemplate.MLOpsServiceCataloguePortfolioStack(app, 'MyTestStack');
     // THEN
     expectCDK(stack).to(matchTemplate({
       "Resources": {}

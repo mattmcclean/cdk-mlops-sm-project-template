@@ -4,17 +4,8 @@ import * as servicecatalog from '@aws-cdk/aws-servicecatalog';
 import { Asset } from '@aws-cdk/aws-s3-assets';
 import * as path from 'path';
 
-export interface MLOpsServiceCataloguePortfolioStackProps extends cdk.StackProps {
-
-  // the ARN of the constraint IAM role
-  constraintRole: string;
-
-  // the ARN of the access IAM role for SageMaker Studio 
-  accessRole: string;
-}
-
 export class MLOpsServiceCataloguePortfolioStack extends cdk.Stack {
-  constructor(scope: cdk.Construct, id: string, props: MLOpsServiceCataloguePortfolioStackProps) {
+  constructor(scope: cdk.Construct, id: string, props: cdk.StackProps = {}) {
     super(scope, id, props);
 
     const templateAsset = new Asset(this, "ScProductTemplate", {
@@ -27,6 +18,18 @@ export class MLOpsServiceCataloguePortfolioStack extends cdk.Stack {
 
     const deploySrcAsset = new Asset(this, "DeploySrcAsset", {
       path: path.join(__dirname, "../src/model-deployment")
+    });
+
+    // set the parameter for the constraint role ARN
+    const constraintRoleArn = new cdk.CfnParameter(this, "constraintRoleArn", {
+      type: "String",
+      description: "The Service Catalogue constraint IAM Role ARN."
+    });
+
+    // set the parameter for the access role ARN
+    const accessRoleArn = new cdk.CfnParameter(this, "accessRoleArn", {
+      type: "String",
+      description: "The Service Catalogue access role IAM Role ARN (typically SageMaker Studio)."
     });
 
     // The Service Catalogue portfolio resource
@@ -61,14 +64,14 @@ export class MLOpsServiceCataloguePortfolioStack extends cdk.Stack {
 
     new servicecatalog.CfnPortfolioPrincipalAssociation(this, 'PortfolioPrincipalAssociation', {
       portfolioId: portfolio.ref,
-      principalArn: props.accessRole,
+      principalArn: accessRoleArn.valueAsString,
       principalType: "IAM",
     });
 
     new servicecatalog.CfnLaunchRoleConstraint(this, 'LaunchRoleConstraint', {
       productId: product.ref,
       portfolioId: portfolio.ref,
-      roleArn: props.constraintRole,
+      roleArn: constraintRoleArn.valueAsString,
     });
 
     new cdk.CfnOutput(this, 'BuildSourceBucket', {
