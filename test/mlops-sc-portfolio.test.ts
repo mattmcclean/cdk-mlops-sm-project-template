@@ -1,11 +1,14 @@
 import { expect as expectCDK, matchTemplate, MatchStyle } from '@aws-cdk/assert';
 import * as cdk from '@aws-cdk/core';
-import * as MlopsScPortfolioFastai from '../lib/mlops-sc-portfolio-fastai-stack';
+import * as MlopsScPortfolioFastai from '../lib/mlops-sc-portfolio-stack';
 
 test('Empty Stack', () => {
     const app = new cdk.App();
     // WHEN
-    const stack = new MlopsScPortfolioFastai.MlopsScPortfolioFastaiStack(app, 'MyTestStack');
+    const stack = new MlopsScPortfolioFastai.MLOpsServiceCataloguePortfolioStack(app, 'MyTestStack', {
+      constraintRole: '',
+      accessRole: '',
+    });
     // THEN
     expectCDK(stack).to(matchTemplate({
       "Resources": {}
