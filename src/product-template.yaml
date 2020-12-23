@@ -56,8 +56,8 @@ Resources:
       RepositoryDescription: !Sub SageMaker Model building workflow infrastructure as code for the Project ${SageMakerProjectName}
       Code:
         S3:
-          Bucket: sagemaker-servicecatalog-seedcode-eu-west-1
-          Key: toolchain/model-building-workflow-v1.0.zip
+          Bucket: !ImportValue MLOpsBuildSourceBucket
+          Key: !ImportValue MLOpsBuildSourceObjectKey
 
   SageMakerModelPipelineBuildProject:
     Type: AWS::CodeBuild::Project
@@ -196,8 +196,8 @@ Resources:
       RepositoryDescription: !Sub SageMaker Endpoint deployment infrastructure as code for the Project ${SageMakerProjectName}
       Code:
         S3:
-          Bucket: sagemaker-servicecatalog-seedcode-eu-west-1
-          Key: toolchain/mpg-deployment-config-v1.0.zip
+          Bucket: !ImportValue MLOpsDeploySourceBucket
+          Key: !ImportValue MLOpsDeploySourceObjectKey
 
   ModelDeployBuildProject:
     Type: AWS::CodeBuild::Project

@@ -3,7 +3,6 @@ import * as servicecatalog from '@aws-cdk/aws-servicecatalog';
 
 import { Asset } from '@aws-cdk/aws-s3-assets';
 import * as path from 'path';
-import * as fs from 'fs';
 
 export interface MLOpsServiceCataloguePortfolioStackProps extends cdk.StackProps {
 
@@ -18,12 +17,16 @@ export class MLOpsServiceCataloguePortfolioStack extends cdk.Stack {
   constructor(scope: cdk.Construct, id: string, props: MLOpsServiceCataloguePortfolioStackProps) {
     super(scope, id, props);
 
-    // use the generated template if exists else the default template in the src dir
-    const templatePath = fs.existsSync("./out/product-template.json") ? path.join(__dirname, "../out/product-template.json") :
-      path.join(__dirname, "../src/product-template.yaml");
+    const templateAsset = new Asset(this, "ScProductTemplate", {
+      path: path.join(__dirname, "../src/product-template.yaml")
+    });
 
-    const cfnAsset = new Asset(this, "ScProductTemplate", {
-      path: templatePath
+    const buildSrcAsset = new Asset(this, "BuildSrcAsset", {
+      path: path.join(__dirname, "../src/model-build")
+    });
+
+    const deploySrcAsset = new Asset(this, "DeploySrcAsset", {
+      path: path.join(__dirname, "../src/model-deployment")
     });
 
     // The Service Catalogue portfolio resource
@@ -40,7 +43,7 @@ export class MLOpsServiceCataloguePortfolioStack extends cdk.Stack {
       provisioningArtifactParameters: [
         {
           name: "v1.0",
-          info: { LoadTemplateFromURL: cfnAsset.httpUrl },
+          info: { LoadTemplateFromURL: templateAsset.httpUrl },
         }
       ],
       tags: [
@@ -67,5 +70,29 @@ export class MLOpsServiceCataloguePortfolioStack extends cdk.Stack {
       portfolioId: portfolio.ref,
       roleArn: props.constraintRole,
     });
+
+    new cdk.CfnOutput(this, 'BuildSourceBucket', {
+      exportName: "MLOpsBuildSourceBucket",
+      value: buildSrcAsset.s3BucketName,
+      description: "The S3 bucket name where the build assets have been uploaded to",
+    });
+
+    new cdk.CfnOutput(this, 'BuildSourceObjectKey', {
+      exportName: "MLOpsBuildSourceObjectKey",
+      value: buildSrcAsset.s3ObjectKey,
+      description: "The S3 object key where the build assets have been uploaded to",
+    });    
+
+    new cdk.CfnOutput(this, 'DeploySourceBucket', {
+      exportName: "MLOpsDeploySourceBucket",
+      value: deploySrcAsset.s3BucketName,
+      description: "The S3 bucket name where the deployment assets have been uploaded to",
+    });
+
+    new cdk.CfnOutput(this, 'DeploySourceObjectKey', {
+      exportName: "MLOpsDeploySourceObjectKey",
+      value: deploySrcAsset.s3ObjectKey,
+      description: "The S3 object key where the deployment assets have been uploaded to",
+    });     
   }
 }
